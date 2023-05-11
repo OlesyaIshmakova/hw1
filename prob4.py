@@ -1,58 +1,57 @@
-import os
-import re
-import csv
+import csv, json
+from file import CSV_F_PATH, JSON_F_PATH
 
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+# печатает все строки из файла работало
+with open(CSV_F_PATH) as csv_file:
+    rd = csv.DictReader(csv_file)
+    # обнулитьсписок
+books = []
+for row in rd:
+    books.append(row)
+print(book)
+# list.append(item)     append()      принимает      один      аргумент      item      и      добавляет     его      в      конец      list.
 
+# открыть json пользователи прочитать 
+with open(JSON_F_PATH) as json_file:
+    users = json.load(json_file)
+    users_list = users['users']
+    # print(users_list)
+num_users = len(users_list)
+num_books = len(books)
+print(num_users)
+print(num_books)
 
-def collect_data():
-    data_dir = os.path.join(CURRENT_DIR, "hw2")
-    result = []
-    f = [i for i in os.listdir(data_dir) if i.split('.')[1] == 'txt']
+data = [
+    {
+        "name": "Lolita Lynn",
+        "gender": "female",
+        "address": "389 Neptune Avenue, Belfair, Iowa, 6116",
+        "age": 34,
+        "books": [
+            {
+                "title": "Fundamentals of Wavelets",
+                "author": "Goswami, Jaideva",
+                "pages": 228,
+                "genre": "signal_processing"
+            }
+        ]
+    }
+]
 
-    for filename in f:
-        filepath = os.path.join(data_dir, filename)
+max_books_per_user = num_books // num_users
+remaining_books = num_books % num_users
+print(max_books_per_user)
+print(remaining_books)
 
-        with open(filepath) as fl:
-            for line in fl.readlines():
-                result += re.findall(r'^(\w[^:]+).*:\s+([^:\n]+)\s*$', line)
-    return result
+book_index = 0
+for i, user in enumerate(users_list):
+    for j in range(max_books_per_user):
+        user["books"].append(books[book_index])
+        book_index += 1
+    if i < remaining_books:
+        user['books'].append(books[book_index])
+        book_index += 1
 
-
-def get_data():
-    data = collect_data()
-    os_prod_list, os_name_list, os_code_list, os_type_list = [], [], [], []
-    main_data = [['Изготовитель системы', 'Название ОС', 'Код продукта', 'Тип системы']]
-
-    for item in data:
-        os_prod_list.append(item[1]) if item[0] == main_data[0][0] else None
-        os_name_list.append(item[1]) if item[0] == main_data[0][1] else None
-        os_code_list.append(item[1]) if item[0] == main_data[0][2] else None
-        os_type_list.append(item[1]) if item[0] == main_data[0][3] else None
-
-    for i in range(len(os_prod_list)):
-        main_data.append([os_prod_list[i], os_name_list[i], os_code_list[i], os_type_list[i]])
-
-    return main_data
-
-
-def write_to_csv(filepath):
-    data = get_data()
-
-    dir_, filename = os.path.split(filepath)
-
-    os.makedirs(dir_, exist_ok=True)
-
-    filepath = os.path.join(CURRENT_DIR, dir_, filename)
-
-    with open(filepath, 'w', encoding='utf-8', newline='') as csv_file:
-        writer = csv.writer(csv_file, delimiter=',', quoting=csv.QUOTE_NONNUMERIC)
-
-        for line in data:
-            writer.writerow(line)
-
-    print(f'Данные сохранены в {filepath}')
-
-
-if __name__ == '__main__':
-    write_to_csv('file/new_data_report.csv')
+with open('result.json', 'w') as f:
+    s = json.dumps(data, f)
+    f.write(s)
